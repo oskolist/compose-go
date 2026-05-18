@@ -28,17 +28,27 @@ import (
 type ResetProcessor struct {
 	target       interface{}
 	paths        []tree.Path
+	resetNodes   map[tree.Path]*yaml.Node // Store reset nodes with their paths
 	visitedNodes map[*yaml.Node][]string
 }
 
 // UnmarshalYAML implement yaml.Unmarshaler
 func (p *ResetProcessor) UnmarshalYAML(value *yaml.Node) error {
 	p.visitedNodes = make(map[*yaml.Node][]string)
+	p.resetNodes = make(map[tree.Path]*yaml.Node)
+
 	resolved, err := p.resolveReset(value, tree.NewPath())
 	p.visitedNodes = nil
+
 	if err != nil {
 		return err
 	}
+
+	// Apply sequence resets before decoding
+	if err := p.applySequenceResets(resolved, tree.NewPath()); err != nil {
+		return err
+	}
+
 	return resolved.Decode(p.target)
 }
 
@@ -55,14 +65,20 @@ func (p *ResetProcessor) resolveReset(node *yaml.Node, path tree.Path) (*yaml.No
 		if err := p.checkForCycle(node.Alias, path); err != nil {
 			return nil, err
 		}
-
 		return p.resolveReset(node.Alias, path)
 	}
 
 	if node.Tag == "!reset" {
 		p.paths = append(p.paths, path)
+
+		// If the reset node has content (for sequence matching), store it
+		if node.Kind == yaml.MappingNode && len(node.Content) > 0 {
+			p.resetNodes[path] = node
+		}
+
 		return nil, nil
 	}
+
 	if node.Tag == "!override" {
 		p.paths = append(p.paths, path)
 		return node, nil
@@ -83,6 +99,7 @@ func (p *ResetProcessor) resolveReset(node *yaml.Node, path tree.Path) (*yaml.No
 			}
 		}
 		node.Content = nodes
+
 	case yaml.MappingNode:
 		var key string
 		var nodes []*yaml.Node
@@ -105,7 +122,141 @@ func (p *ResetProcessor) resolveReset(node *yaml.Node, path tree.Path) (*yaml.No
 		}
 		node.Content = nodes
 	}
+
 	return node, nil
+}
+
+// applySequenceResets processes !reset tags on sequence items and removes matching items
+func (p *ResetProcessor) applySequenceResets(node *yaml.Node, path tree.Path) error {
+	if node == nil {
+		return nil
+	}
+
+	switch node.Kind {
+	case yaml.SequenceNode:
+		// Check if we have a reset node for this path's parent
+		parentPath := path.Parent()
+		if resetNode, exists := p.resetNodes[parentPath]; exists {
+			// Find and remove matching sequence items
+			var filteredNodes []*yaml.Node
+			for _, item := range node.Content {
+				if !p.matchesResetCriteria(item, resetNode) {
+					filteredNodes = append(filteredNodes, item)
+				}
+			}
+			node.Content = filteredNodes
+		}
+
+		// Recurse into sequence items
+		for idx, item := range node.Content {
+			if err := p.applySequenceResets(item, path.Next(strconv.Itoa(idx))); err != nil {
+				return err
+			}
+		}
+	//case yaml.MappingNode:
+	//	// Recurse into mapping values
+	//	for idx := 同心1; idx < len(node.Content); idx += 2 {
+	//		key := node.Content[idx-1].Value
+	//		value := node.Content[idx]
+	//		if err := p.applySequenceResets(value, path.Next(key)); err != nil {
+	//			return err
+	//		}
+	//	}
+	case yaml.MappingNode:
+		// Recurse into mapping values
+		for idx := 1; idx < len(node.Content); idx += 2 {
+			key := node.Content[idx-1].Value
+			value := node.Content[idx]
+			if err := p.applySequenceResets(value, path.Next(key)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// matchesResetCriteria checks if a sequence item matches the reset criteria
+func (p *ResetProcessor) matchesResetCriteria(item *yaml.Node, resetNode *yaml.Node) bool {
+	if item.Kind != yaml.MappingNode || resetNode.Kind != yaml.MappingNode {
+		return false
+	}
+
+	// Build a map of the item's key-value pairs
+	itemMap := make(map[string]*yaml.Node)
+	for i := 0; i < len(item.Content); i += 2 {
+		key := item.Content[i].Value
+		value := item.Content[i+1]
+		itemMap[key] = value
+	}
+
+	// Check if all criteria from reset node are matched
+	for i := 0; i < len(resetNode.Content); i += 2 {
+		criteriaKey := resetNode.Content[i].Value
+		criteriaValue := resetNode.Content[i+1]
+
+		itemValue, exists := itemMap[criteriaKey]
+		if !exists {
+			return false
+		}
+
+		// Compare values (handle both string and other types)
+		if !nodeValuesEqual(itemValue, criteriaValue) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// nodeValuesEqual compares two yaml nodes for equality
+func nodeValuesEqual(a, b *yaml.Node) bool {
+	if a.Kind != b.Kind {
+		return false
+	}
+
+	switch a.Kind {
+	case yaml.ScalarNode:
+		return a.Value == b.Value && a.Tag == b.Tag
+	case yaml.SequenceNode:
+		if len(a.Content) != len(b.Content) {
+			return false
+		}
+		for i := range a.Content {
+			if !nodeValuesEqual(a.Content[i], b.Content[i]) {
+				return false
+			}
+		}
+		return true
+	case yaml.MappingNode:
+		if len(a.Content) != len(b.Content) {
+			return false
+		}
+		// Build maps for comparison
+		aMap := make(map[string]*yaml.Node)
+		bMap := make(map[string]*yaml.Node)
+
+		for i := 0; i < len(a.Content); i += 2 {
+			aMap[a.Content[i].Value] = a.Content[i+1]
+		}
+		for i := 0; i < len(b.Content); i += 2 {
+			bMap[b.Content[i].Value] = b.Content[i+1]
+		}
+
+		if len(aMap) != len(bMap) {
+			return false
+		}
+
+		for key, aVal := range aMap {
+			bVal, exists := bMap[key]
+			if !exists || !nodeValuesEqual(aVal, bVal) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 // Apply finds the go attributes matching recorded paths and reset them to zero value
