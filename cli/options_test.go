@@ -23,11 +23,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/types"
 	"gotest.tools/v3/assert"
 
-	"github.com/compose-spec/compose-go/v2/consts"
-	"github.com/compose-spec/compose-go/v2/utils"
+	"github.com/oskolist/compose-go/v2/consts"
+	"github.com/oskolist/compose-go/v2/utils"
 )
 
 func TestProjectName(t *testing.T) {

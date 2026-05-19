@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/consts"
-	"github.com/compose-spec/compose-go/v2/tree"
+	"github.com/oskolist/compose-go/v2/consts"
+	"github.com/oskolist/compose-go/v2/tree"
 )
 
 func checkExternal(v map[string]any, p tree.Path) error {

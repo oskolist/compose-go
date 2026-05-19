@@ -20,7 +20,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/types"
 	"gotest.tools/v3/assert"
 )
 
@@ -317,6 +317,7 @@ services:
         FOO: bar
 `,
 		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

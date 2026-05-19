@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/compose-spec/compose-go/v2/template"
-	"github.com/compose-spec/compose-go/v2/tree"
+	"github.com/oskolist/compose-go/v2/template"
+	"github.com/oskolist/compose-go/v2/tree"
 )
 
 // Options supported by Interpolate

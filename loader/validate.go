@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/errdefs"
-	"github.com/compose-spec/compose-go/v2/graph"
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/errdefs"
+	"github.com/oskolist/compose-go/v2/graph"
+	"github.com/oskolist/compose-go/v2/types"
 )
 
 // checkConsistency validate a compose model is consistent

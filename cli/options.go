@@ -27,11 +27,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.yaml.in/yaml/v4"
 
-	"github.com/compose-spec/compose-go/v2/consts"
-	"github.com/compose-spec/compose-go/v2/dotenv"
-	"github.com/compose-spec/compose-go/v2/loader"
-	"github.com/compose-spec/compose-go/v2/types"
-	"github.com/compose-spec/compose-go/v2/utils"
+	"github.com/oskolist/compose-go/v2/consts"
+	"github.com/oskolist/compose-go/v2/dotenv"
+	"github.com/oskolist/compose-go/v2/loader"
+	"github.com/oskolist/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/utils"
 )
 
 // ProjectOptions provides common configuration for loading a project.

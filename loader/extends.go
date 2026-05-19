@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/compose-spec/compose-go/v2/consts"
-	"github.com/compose-spec/compose-go/v2/override"
-	"github.com/compose-spec/compose-go/v2/paths"
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/consts"
+	"github.com/oskolist/compose-go/v2/override"
+	"github.com/oskolist/compose-go/v2/paths"
+	"github.com/oskolist/compose-go/v2/types"
 )
 
 func ApplyExtends(ctx context.Context, dict map[string]any, opts *Options, tracker *cycleTracker, post PostProcessor) error {

@@ -27,9 +27,9 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/compose-spec/compose-go/v2/dotenv"
-	"github.com/compose-spec/compose-go/v2/errdefs"
-	"github.com/compose-spec/compose-go/v2/utils"
+	"github.com/oskolist/compose-go/v2/dotenv"
+	"github.com/oskolist/compose-go/v2/errdefs"
+	"github.com/oskolist/compose-go/v2/utils"
 	"github.com/distribution/reference"
 	godigest "github.com/opencontainers/go-digest"
 	"go.yaml.in/yaml/v4"

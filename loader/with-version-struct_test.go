@@ -19,7 +19,7 @@ package loader
 import (
 	"path/filepath"
 
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/types"
 )
 
 func withVersionExampleConfig() *types.Config {

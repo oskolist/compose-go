@@ -23,11 +23,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/dotenv"
-	interp "github.com/compose-spec/compose-go/v2/interpolation"
-	"github.com/compose-spec/compose-go/v2/override"
-	"github.com/compose-spec/compose-go/v2/tree"
-	"github.com/compose-spec/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/dotenv"
+	interp "github.com/oskolist/compose-go/v2/interpolation"
+	"github.com/oskolist/compose-go/v2/override"
+	"github.com/oskolist/compose-go/v2/tree"
+	"github.com/oskolist/compose-go/v2/types"
 )
 
 // loadIncludeConfig parse the required config from raw yaml

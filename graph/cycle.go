@@ -21,8 +21,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/types"
-	"github.com/compose-spec/compose-go/v2/utils"
+	"github.com/oskolist/compose-go/v2/types"
+	"github.com/oskolist/compose-go/v2/utils"
 )
 
 // CheckCycle analyze project's depends_on relation and report an error on cycle detection

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/compose-spec/compose-go/v2/tree"
+	"github.com/oskolist/compose-go/v2/tree"
 )
 
 // Merge applies overrides to a config model
