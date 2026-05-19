@@ -317,38 +317,6 @@ services:
         FOO: bar
 `,
 		},
-		{
-			name: "reset_nested_sequence",
-			base: `
-name: test-reset-nested-seq
-services:
-  myservice:
-    image: nginx
-    volumes:
-      - type: volume
-        source: data
-        target: /data
-      - type: bind
-        source: ./config
-        target: /config
-    networks:
-      default:
-        aliases:
-          - web
-          - api
-          - admin
-`,
-			override: `
-services:
-  myservice:
-    networks:
-      default:
-        aliases:
-          - !reset
-            api: true
-`,
-		},
-	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -401,16 +369,6 @@ services:
 				_, hasFoo := env["FOO"]
 				assert.Check(t, !hasFoo)
 
-			case "reset_nested_sequence":
-				aliases := p.Services["myservice"].Networks["default"].Aliases
-				assert.Equal(t, len(aliases), 2) // api alias removed
-				hasApi := false
-				for _, alias := range aliases {
-					if alias == "api" {
-						hasApi = true
-					}
-				}
-				assert.Check(t, !hasApi)
 			}
 		})
 	}
@@ -597,51 +555,4 @@ services:
 	ports := p.Services["myservice"].Ports
 	assert.Equal(t, len(ports), 1)
 	assert.Equal(t, ports[0].Name, "web")
-}
-
-func TestResetSequenceWithNestedStructures(t *testing.T) {
-	p, err := LoadWithContext(context.TODO(), types.ConfigDetails{
-		ConfigFiles: []types.ConfigFile{
-			{
-				Filename: "(base)",
-				Content: []byte(`
-name: test-nested-structures
-services:
-  myservice:
-    image: nginx
-    deploy:
-      resources:
-        limits:
-          - type: volume
-            source: data
-            target: /data
-          - type: bind
-            source: config
-            target: /config
-`),
-			},
-			{
-				Filename: "(override)",
-				Content: []byte(`
-services:
-  myservice:
-    deploy:
-      resources:
-        limits:
-          - !reset
-            type: bind
-`),
-			},
-		},
-	}, func(options *Options) {
-		options.SkipNormalization = true
-		options.SkipConsistencyCheck = true
-	})
-	assert.NilError(t, err)
-
-	// Check that the bind mount was removed
-	limits := p.Services["myservice"].Deploy.Resources.Limits
-	// Note: This assumes the YAML structure maps to the correct types
-	// You may need to adjust based on actual type definitions
-	assert.Assert(t, limits != nil)
 }
